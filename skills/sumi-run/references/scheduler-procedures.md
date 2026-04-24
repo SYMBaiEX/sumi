@@ -30,11 +30,11 @@ Stored inside each task in `config.json` under `task.schedule.handle`. The handl
 | `daily` / `weekly` / `monthly` / anything ≥ 1h and durable | Routines (cloud) | Persistent, survives laptop close, max 1 resource. Created via `/schedule` or natural language. |
 | Short custom cron (<1h interval) or short-lived polling | `CronCreate` | Session-scoped with 7-day expiry. Only suitable when user wants something ephemeral or has intervals CronCreate supports that Routines doesn't. |
 
-**Create (Routine):** in the current session, instruct the runtime: *"Create a routine named `summary-<task-id>` that runs `/summary-run <task-id>` with cron `<cron>` in timezone `<tz>`. Use default connectors."*
+**Create (Routine):** in the current session, instruct the runtime: *"Create a routine named `summary-<task-id>` that runs `/sumi-run <task-id>` with cron `<cron>` in timezone `<tz>`. Use default connectors."*
 
 Store in handle: `type: "claude-code-routine"`, `identifier: <routine name or ID echoed back by the runtime>`.
 
-**Create (CronCreate fallback):** call the `CronCreate` MCP tool with `{cron, prompt: "/summary-run <task-id>", recurring: true}`. Capture the 8-char job ID.
+**Create (CronCreate fallback):** call the `CronCreate` MCP tool with `{cron, prompt: "/sumi-run <task-id>", recurring: true}`. Capture the 8-char job ID.
 
 Store in handle: `type: "claude-code-cron"`, `identifier: <8-char job ID>`.
 
@@ -54,7 +54,7 @@ Store in handle: `type: "claude-code-cron"`, `identifier: <8-char job ID>`.
 
 **Create:** inside any Desktop session, instruct the runtime in natural language:
 
-> "Create a Desktop scheduled task named `summary-<task-id>` with frequency `<daily|weekdays|weekly|hourly|manual|custom cron>`. When it runs, send this prompt: `/summary-run <task-id>`. Working folder: use the plugin's install dir. Permission mode: auto-approve tools already allowed in this session."
+> "Create a Desktop scheduled task named `summary-<task-id>` with frequency `<daily|weekdays|weekly|hourly|manual|custom cron>`. When it runs, send this prompt: `/sumi-run <task-id>`. Working folder: use the plugin's install dir. Permission mode: auto-approve tools already allowed in this session."
 
 Desktop will create the task and register the schedule. Capture the task name the runtime reports back.
 

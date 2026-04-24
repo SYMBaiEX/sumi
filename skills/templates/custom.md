@@ -1,6 +1,6 @@
 # Template: Custom (Scaffold)
 
-This file is the starting point for custom summary templates. When the user picks `Custom` during task setup, this file is copied to `~/.claude-summaries/templates/<task-id>.md` and the user edits it to match their format.
+This file is the starting point for custom summary templates. When the user picks `Custom` during task setup, this file is copied to `~/.sumi/templates/<task-id>.md` and the user edits it to match their format.
 
 Edit freely. The run skill re-reads the template every invocation, so changes take effect on the next run without reinstalling anything.
 

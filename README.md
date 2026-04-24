@@ -1,56 +1,60 @@
-# Summary Agent
+# Sumi
 
-Manage many recurring summary tasks — daily, weekly, monthly, or any custom cadence — drawn from the tools you're already connected to, delivered where you want to review them.
+> **/sumi** — manage many recurring summary tasks at any cadence, drawn from the tools you're already connected to, delivered where you want to review them. Uses each runtime's native scheduler so scheduled runs are fully autonomous.
 
-Create a standup digest that runs every morning. A team update that posts every Friday. A monthly exec brief. A weekly customer pulse. Each task is independent: its own cadence, its own sources, its own template, its own destination.
+Create a standup digest that runs every morning. A team update that posts every Friday. A monthly exec brief. A weekly customer pulse. Each task is independent: its own cadence, sources, template, notes, and delivery destination.
 
-## How it works
+## How to use
 
-1. **Install** the plugin in your agent runtime (Claude Code, Claude Desktop, Codex, Cursor, Cline, Continue — any that read `AGENTS.md` or `.claude-plugin/`).
-2. **Say "set up summary agent"**. The manager skill walks you through creating your first task: name, cadence, sources, template, tone/notes preset, delivery destination.
-3. **The run skill fires** on your configured schedule, pulls from the tools you picked, consolidates using your template, and drops the draft where you said to deliver it.
-4. **You review the draft** — edit, forward, ignore, regenerate. The plugin never sends anything on your behalf.
+- **`/sumi`** — open the manager. Creates your first task or shows the manager menu (create / edit / delete / run / list) if tasks exist.
+- **`/sumi-run <task-id>`** — run a task immediately. Also what scheduled triggers invoke.
 
-Later, say "set up summary agent" again to create another task, edit an existing one, or delete one. You can have as many tasks as you want, each on its own cadence.
-
-## Zero-config MCP, zero secrets
-
-The plugin **does not bundle any MCP servers, tokens, or credentials**. It rides on whatever connectors your runtime already has — Google Drive, Gmail, Google Calendar, Slack. If a connector isn't enabled, the related option simply isn't offered. When an example needs a user-specific value (like your work email domain), the plugin asks the connector at the moment it's needed and substitutes it in — nothing personal is ever stored in the plugin itself.
-
-This is why the plugin is safe to publish publicly and share across any company — nothing company-specific lives in the code.
+You can also say things naturally: "set up sumi", "new sumi task", "run the weekly sumi", "delete my standup sumi". The slash commands are the direct path and avoid any confusion with the word "agent."
 
 ## Install
 
 Installing in any one of your agent runtimes makes the plugin available across every other agent runtime on your machine (except Claude, which manages its own cache). Do this once in whichever runtime you use first.
 
-### Claude Code / Claude Desktop (easiest)
+### Claude Code / Claude Desktop
 
 ```
-/plugin marketplace add SYMBaiEX/summary-agent
-/plugin install summary-agent@summary-agent
-set up summary agent
+/plugin marketplace add SYMBaiEX/sumi
+/plugin install sumi@sumi
+/sumi
 ```
 
 ### Codex CLI / Codex Desktop
 
 ```bash
-git clone https://github.com/SYMBaiEX/summary-agent.git ~/.codex/summary-agent
+git clone https://github.com/SYMBaiEX/sumi.git ~/.codex/sumi
 ```
 
-Then in Codex: `set up summary agent`.
+Then in Codex: `/sumi` (or say "set up sumi").
 
 ### Cursor / Cline / Continue / any AGENTS.md-aware agent
 
-Clone the repo into the runtime's global agents path or add as a workspace, then invoke `set up summary agent` and `run summary <task-id>` as natural-language commands. The `AGENTS.md` at the repo root is the entry point.
+Clone the repo into the runtime's global agents path or add as a workspace, then invoke `/sumi` or `/sumi-run <id>`. The `AGENTS.md` at the repo root is the entry point.
 
-## Use
+## Zero-config MCP, zero secrets
 
-| What you want | What you say |
+The plugin **bundles no MCP servers, no tokens, no credentials**. It uses whatever connectors your runtime already has — Google Drive, Gmail, Google Calendar, Slack. If a connector isn't enabled, the related option simply isn't offered. User-specific values (like your work email domain) are inferred from the connector at the moment they're needed, never stored.
+
+This is why sumi is safe to publish publicly and share across any company — nothing company-specific lives in the code.
+
+## Native scheduling per runtime
+
+Every major runtime ships a native scheduler as of 2026. Sumi uses the runtime's own primitive — no OS-level cron, no launchd, no Task Scheduler. Scheduled runs integrate with the runtime's auth, connectors, permissions, notifications, and run-history UI.
+
+| Runtime | Native scheduler sumi uses |
 |---|---|
-| Create your first / another task | `set up summary agent` |
-| List, edit, delete, or run tasks | `set up summary agent` (shows manager menu when tasks exist) |
-| Run a specific task now | `run summary <task-id>` |
-| Run "the" summary (when only one exists) | `run my summary` |
+| Claude Code CLI | **Routines** (cloud, durable) or `CronCreate` (session-scoped, 7-day) |
+| Claude Desktop (macOS, Windows) | **Desktop scheduled tasks** (fires while app is open) |
+| Codex app | **Codex Automations** (standalone) |
+| Codex CLI | redirects to Codex app for scheduling, or saves as manual |
+| Cursor | prints exact paste-in steps for **Cursor Automations** UI |
+| Cline / Continue / other | manual — suggests using Desktop / Codex app alongside (config shared via symlinks) |
+
+Full per-runtime scheduler recipes (create / list / update / delete) in [`skills/sumi-run/references/scheduler-procedures.md`](skills/sumi-run/references/scheduler-procedures.md).
 
 ## Sources
 
@@ -58,7 +62,7 @@ Pick any combination at setup time:
 
 | Source | Good for |
 |---|---|
-| **Google Drive** | Project plans, weekly docs, design specs you update |
+| **Google Drive** | Project plans, weekly docs, design specs |
 | **Gmail** | Customer signal, external mail, anything you star or label |
 | **Google Calendar** | Meetings held + upcoming commitments |
 | **Slack** | Channel activity, decisions, blockers — if Slack is connected |
@@ -67,7 +71,7 @@ Multi-select. At least one source per task.
 
 ## Templates
 
-Preset two-level picker plus a Custom scaffold.
+Two-level preset picker plus a Custom scaffold.
 
 | Category | Variants |
 |---|---|
@@ -75,13 +79,13 @@ Preset two-level picker plus a Custom scaffold.
 | **exec-brief** | weekly, monthly |
 | **customer-digest** | support, success |
 | **standup** | daily-async, weekly-recap |
-| **Custom** | Scaffolds a blank template at `~/.claude-summaries/templates/<task-id>.md` that you edit to taste |
+| **Custom** | Blank scaffold at `~/.sumi/templates/<task-id>.md` you edit to taste |
 
-Templates are read fresh each run, so edits take effect immediately.
+Templates are read fresh each run — edits take effect immediately.
 
 ## Notes / tone presets
 
-Pick one per task — steers tone and emphasis without changing structure:
+Pick one per task. Steers tone and emphasis without changing structure:
 
 - Emphasize numbers and metrics
 - Casual tone, short bullets
@@ -93,56 +97,32 @@ Pick one per task — steers tone and emphasis without changing structure:
 
 ## Destinations
 
-Pick one per task:
+- **Slack channel** — if Slack is connected. Usually a private channel or DM-to-self.
+- **Gmail draft to yourself** — unsent draft in your inbox.
+- **Local markdown file** — `~/.sumi/drafts/<task-id>/YYYY-MM-DD.md`. Always-available fallback.
 
-1. **Slack channel** — if Slack is connected. Usually a private channel or DM-to-self.
-2. **Gmail draft to yourself** — unsent draft in your inbox. Open Friday morning, review, forward.
-3. **Local markdown file** — `~/.claude-summaries/drafts/<task-id>/YYYY-MM-DD.md`. Always-available fallback.
-
-Smart default based on what you have connected; you can always override.
+Smart default based on what's connected; override anytime.
 
 ## Where things live
 
 | Path | What |
 |---|---|
-| `~/.claude-summaries/config.json` | Your task list (chmod 600). |
-| `~/.claude-summaries/plugin/` | Canonical git clone used for cross-runtime symlinks. |
-| `~/.claude-summaries/drafts/<task-id>/` | Local drafts (if you chose the file destination). |
-| `~/.claude-summaries/templates/<task-id>.md` | Your edited custom template (if you chose Custom). |
+| `~/.sumi/config.json` | Your task list (chmod 600). |
+| `~/.sumi/plugin/` | Canonical git clone used for cross-runtime symlinks. |
+| `~/.sumi/drafts/<task-id>/` | Local drafts (if you chose the file destination). |
+| `~/.sumi/templates/<task-id>.md` | Your edited custom template (if you chose Custom). |
 
 Nothing leaves your machine beyond the connector calls your runtime already makes.
 
-## Platforms
-
-Every runtime's native scheduler is used. No OS-level cron, launchd, or Task Scheduler — scheduled tasks live *inside* the runtime where you created them, integrating with its auth, connectors, permissions, and run history.
-
-| Runtime | Skills | Native scheduler used |
-|---|---|---|
-| Claude Code CLI | ✅ | **Routines** (cloud, durable) or `CronCreate` (session-scoped, 7-day) |
-| Claude Desktop (macOS, Windows) | ✅ | **Desktop scheduled tasks** (fires while app is open) |
-| Codex app | ✅ via AGENTS.md | **Codex Automations** (standalone) |
-| Codex CLI | ✅ via AGENTS.md | no app-level automation — skill redirects to Codex app or falls back to manual |
-| Cursor | ✅ via AGENTS.md | **Cursor Automations** (UI-only creation — skill prints exact paste-in steps) |
-| Cline / Continue / other | ✅ via AGENTS.md | no native scheduler — manual; suggest using Desktop/Codex app alongside |
-| Any MCP-capable agent | ✅ — follow the SKILL.md files directly | depends on runtime |
-
-Full per-runtime scheduler recipes (create / list / update / delete) in [`skills/summary-run/references/scheduler-procedures.md`](skills/summary-run/references/scheduler-procedures.md).
-
 ## Privacy
 
-- Nothing leaves your machine except the connector calls your runtime already makes.
-- No data is stored outside `~/.claude-summaries/` (identifiers + queries, never message bodies or doc contents).
-- Draft is delivered only to the destination you configured. The plugin never @-mentions anyone or posts elsewhere.
+- No data stored outside `~/.sumi/` (identifiers + queries only, never message bodies or doc contents).
+- Draft delivered only to the destination you configured. Never @-mentions, never posts elsewhere.
 
 ## Sharing with teammates
 
-Teammates install the same way, answer setup prompts using *their* connectors and *their* permissions. No shared tokens, no service accounts, no workspace-admin coordination beyond what each teammate's own Slack/Google policies already require.
-
-## Customizing
-
-- **Template**: edit the preset at `skills/templates/<cat>/<var>.md` in the plugin dir (changes on your machine), or pick Custom at setup time to get your own editable copy at `~/.claude-summaries/templates/<task-id>.md`.
-- **Notes guidance**: the mapping from preset key → guidance string lives in `skills/summary-run/references/run-procedure.md`. Edit locally if you want different tuning.
+Teammates install the same way, answer setup prompts using *their* connectors and *their* permissions. No shared tokens, no service accounts, no workspace-admin coordination beyond what each person's own tool policies already require.
 
 ## Related
 
-- **[SYMBaiEX/weekly-update](https://github.com/SYMBaiEX/weekly-update)** — the single-purpose plugin that preceded this one. Still works, still maintained. Use that if you only need one weekly update; use `summary-agent` if you want multiple summary tasks of varying cadences.
+- **[SYMBaiEX/weekly-update](https://github.com/SYMBaiEX/weekly-update)** — the single-purpose weekly-update plugin that preceded sumi. Still works. Use it if you only need one weekly update; use sumi if you want multiple tasks at varying cadences.

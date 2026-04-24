@@ -1,13 +1,13 @@
 {
-  "name": "summary-agent",
+  "name": "sumi",
   "owner": {
-    "name": "summary-agent"
+    "name": "sumi"
   },
   "plugins": [
     {
-      "name": "summary-agent",
+      "name": "sumi",
       "source": "./",
-      "description": "Manage many recurring summary tasks — daily standups, weekly team updates, monthly exec briefs, customer digests, or anything custom — from your connected tools, delivered where you want."
+      "description": "Sumi — manage recurring summary tasks of any cadence from Drive, Gmail, Calendar, and Slack. Use /sumi to set up, /sumi-run to trigger."
     }
   ]
 }

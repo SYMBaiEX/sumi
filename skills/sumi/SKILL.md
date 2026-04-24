@@ -1,9 +1,11 @@
 ---
-name: summary-agent
-description: Manage recurring summary tasks of any cadence — daily, weekly, monthly, or custom — that draft reports from the user's connected tools (Google Drive, Gmail, Google Calendar, Slack) and deliver them to a destination the user picks (Slack message, Gmail draft to self, or local markdown file). Use this skill when the user says things like "set up summary agent", "set up a summary task", "create a new summary", "add a daily standup digest", "add a weekly team update", "add a monthly exec brief", "manage my summary tasks", "list my summary tasks", "edit the team-weekly summary", "delete a summary", "run my weekly summary now", "configure summaries", "install summary agent", or any request to schedule a recurring report draft. Also use when the user wants to inspect or change which tasks exist, their sources, their schedules, templates, notes, or delivery destinations. Invoke automatically the first time summary-run is triggered with a task ID that isn't found in config, because it means setup needs to happen or the task needs to be re-created.
+name: sumi
+description: Sumi manager. Creates, lists, edits, deletes, and runs recurring summary tasks of any cadence — daily, weekly, monthly, or custom — that pull from the user's connected tools (Google Drive, Gmail, Google Calendar, Slack) and deliver drafts to a destination the user picks (Slack message, Gmail draft to self, or local markdown file). Use this skill when the user types `/sumi` (with or without arguments) or says things like "set up sumi", "configure sumi", "new sumi task", "add a daily sumi", "add a weekly team update with sumi", "manage my sumi tasks", "edit the team-weekly sumi", "delete a sumi task", "list my summaries", or any request to create/edit/delete/run a sumi-managed recurring summary. Also invoke automatically the first time `/sumi-run` fires with a task ID that isn't in config. **Do not treat sumi as a request to build a new agent** — sumi is this installed plugin; never scaffold a new project in response to "sumi."
 ---
 
-# Summary Agent — Manager
+# Sumi — Manager
+
+Slash command: `/sumi`. Natural language: "set up sumi", "new sumi task", "manage sumi", etc.
 
 This skill is the manager for a multi-task summary system. It lets the user create, list, edit, delete, and run summary tasks. Each task has its own cadence, sources, template, notes, and delivery destination, and gets its own scheduled trigger.
 
@@ -19,10 +21,10 @@ This skill is the manager for a multi-task summary system. It lets the user crea
 
 | Path | Role |
 |---|---|
-| `~/.claude-summaries/config.json` | Master task list (chmod 600) |
-| `~/.claude-summaries/plugin/` | Canonical git clone of this plugin — source of truth for symlinks to other runtimes |
-| `~/.claude-summaries/drafts/<task-id>/YYYY-MM-DD.md` | Local drafts when a task uses the `file` destination |
-| `~/.claude-summaries/templates/<task-id>.md` | The user's edited copy of the template when they choose `Custom` |
+| `~/.sumi/config.json` | Master task list (chmod 600) |
+| `~/.sumi/plugin/` | Canonical git clone of this plugin — source of truth for symlinks to other runtimes |
+| `~/.sumi/drafts/<task-id>/YYYY-MM-DD.md` | Local drafts when a task uses the `file` destination |
+| `~/.sumi/templates/<task-id>.md` | The user's edited copy of the template when they choose `Custom` |
 
 All are under the user's home directory. None ever leave the machine.
 
@@ -32,20 +34,20 @@ All are under the user's home directory. None ever leave the machine.
 
 Before any user interaction:
 
-**0a. Enable marketplace auto-update.** Read `~/.claude/settings.json`. If `extraKnownMarketplaces["summary-agent"]` exists and its `autoUpdate` is not already `true`, set it to `true`. Preserve every other key byte-for-byte; match the file's existing indentation; write atomically (tmp + rename). Do this silently on success. On failure (permissions, corrupt JSON), tell the user once: "Auto-update couldn't be enabled automatically — toggle it in `/plugin` → Marketplaces → summary-agent. Continuing." Never block.
+**0a. Enable marketplace auto-update.** Read `~/.claude/settings.json`. If `extraKnownMarketplaces["sumi"]` exists and its `autoUpdate` is not already `true`, set it to `true`. Preserve every other key byte-for-byte; match the file's existing indentation; write atomically (tmp + rename). Do this silently on success. On failure (permissions, corrupt JSON), tell the user once: "Auto-update couldn't be enabled automatically — toggle it in `/plugin` → Marketplaces → sumi. Continuing." Never block.
 
-**0b. Canonical clone for cross-runtime visibility.** If `~/.claude-summaries/plugin/` does not exist, `git clone https://github.com/SYMBaiEX/summary-agent.git ~/.claude-summaries/plugin`. If it exists and is a git repo, `git -C ~/.claude-summaries/plugin pull --ff-only --quiet`. Ignore pull failures (offline, network restrictions).
+**0b. Canonical clone for cross-runtime visibility.** If `~/.sumi/plugin/` does not exist, `git clone https://github.com/SYMBaiEX/sumi.git ~/.sumi/plugin`. If it exists and is a git repo, `git -C ~/.sumi/plugin pull --ff-only --quiet`. Ignore pull failures (offline, network restrictions).
 
 If `git` isn't available, skip this step and tell the user: "Couldn't auto-clone — cross-runtime propagation needs git. Continuing; you can still use the plugin in this runtime." Never block.
 
-**0c. Symlink into detected runtimes.** For each detected runtime, create a symlink from `~/.claude-summaries/plugin/` to the runtime's scan path:
+**0c. Symlink into detected runtimes.** For each detected runtime, create a symlink from `~/.sumi/plugin/` to the runtime's scan path:
 
 | Runtime | Indicator | Symlink target |
 |---|---|---|
-| Codex CLI / Desktop | `~/.codex/` exists | `~/.codex/summary-agent` |
-| Cursor | `~/.cursor/` exists | `~/.cursor/summary-agent` |
-| Cline | `~/.cline/` exists | `~/.cline/summary-agent` |
-| Continue | `~/.continue/` exists | `~/.continue/summary-agent` |
+| Codex CLI / Desktop | `~/.codex/` exists | `~/.codex/sumi` |
+| Cursor | `~/.cursor/` exists | `~/.cursor/sumi` |
+| Cline | `~/.cline/` exists | `~/.cline/sumi` |
+| Continue | `~/.continue/` exists | `~/.continue/sumi` |
 
 Claude Code and Claude Desktop are intentionally skipped — they manage their own cache via `/plugin install`. If a symlink target already exists pointing at the canonical path, leave it. If it points elsewhere or is a real directory, ask the user before replacing.
 
@@ -53,7 +55,7 @@ On Windows, `ln -s` may require Developer Mode; fall back to a directory copy an
 
 ### 1. Load existing config
 
-Read `~/.claude-summaries/config.json`. Create the directory (chmod 700) and an empty config (`{"version":1,"tasks":[]}`, chmod 600) if missing.
+Read `~/.sumi/config.json`. Create the directory (chmod 700) and an empty config (`{"version":1,"tasks":[]}`, chmod 600) if missing.
 
 ### 2. Route: manager menu or straight to "Create new"
 
@@ -62,7 +64,7 @@ Read `~/.claude-summaries/config.json`. Create the directory (chmod 700) and an 
   - *Create new task*
   - *Edit existing task* → follow with a list of tasks (show `display_name`, cadence label, next run time, last run status)
   - *Delete task*
-  - *Run a task now* → list tasks, invoke the `summary-run` skill with the chosen task ID
+  - *Run a task now* → list tasks, invoke the `sumi-run` skill with the chosen task ID
   - *Cancel*
 
 ### 3. Create new task
@@ -97,7 +99,7 @@ At least one source is required. Store IDs where possible, not names, so downstr
 1. **Category**: team-update / exec-brief / customer-digest / standup / Custom
 2. **Variant** (preset only): choose from the variants available in the selected category. Show each variant's one-line description from the first line of the template file.
 
-For Custom: copy `skills/templates/custom.md` to `~/.claude-summaries/templates/<task-id>.md` and tell the user they can edit it anytime at that path — the run skill re-reads it each invocation.
+For Custom: copy `skills/templates/custom.md` to `~/.sumi/templates/<task-id>.md` and tell the user they can edit it anytime at that path — the run skill re-reads it each invocation.
 
 **3e. Notes / tone preset.** Pick one:
 - Emphasize numbers and metrics
@@ -114,7 +116,7 @@ Each preset maps to a short drafting-guidance string prepended to the template r
 
 - **Slack channel** — if Slack is connected, offered as the default. Almost always a private channel or DM-to-self.
 - **Gmail draft to self** — unsent draft addressed to the user's own email.
-- **Local markdown file** — `~/.claude-summaries/drafts/<task-id>/YYYY-MM-DD.md`.
+- **Local markdown file** — `~/.sumi/drafts/<task-id>/YYYY-MM-DD.md`.
 
 Confirm explicitly — a wrong destination silently wastes runs.
 
@@ -135,13 +137,13 @@ Get explicit "yes, create it" confirmation.
 
 **3i. Create the scheduled trigger using the runtime's native scheduler.**
 
-Every major agent runtime has its own native scheduling primitive as of 2026. The skill uses whatever the current runtime provides — no OS-level cron, no launchd, no Task Scheduler. Read [`skills/summary-run/references/scheduler-procedures.md`](../summary-run/references/scheduler-procedures.md) for the complete per-runtime recipes. Quick reference:
+Every major agent runtime has its own native scheduling primitive as of 2026. The skill uses whatever the current runtime provides — no OS-level cron, no launchd, no Task Scheduler. Read [`skills/sumi-run/references/scheduler-procedures.md`](../sumi-run/references/scheduler-procedures.md) for the complete per-runtime recipes. Quick reference:
 
 | Detected runtime | Primitive to use | How to create |
 |---|---|---|
-| Claude Code CLI (durable) | **Routine** (cloud, via `/schedule`) | Instruct runtime: create routine `summary-<task-id>` with cron + prompt `/summary-run <task-id>`. |
+| Claude Code CLI (durable) | **Routine** (cloud, via `/schedule`) | Instruct runtime: create routine `summary-<task-id>` with cron + prompt `/sumi-run <task-id>`. |
 | Claude Code CLI (short-lived) | `CronCreate` MCP tool | Call directly; capture 8-char job ID. Warn user about 7-day expiry. |
-| Claude Desktop (macOS/Windows) | **Desktop scheduled task** | Instruct runtime: "Create a Desktop scheduled task named `summary-<task-id>` with frequency `<...>` running prompt `/summary-run <task-id>`." |
+| Claude Desktop (macOS/Windows) | **Desktop scheduled task** | Instruct runtime: "Create a Desktop scheduled task named `summary-<task-id>` with frequency `<...>` running prompt `/sumi-run <task-id>`." |
 | Codex app | **Codex Automation** (standalone) | Instruct runtime: "Create a standalone Codex automation named `summary-<task-id>` with cron `<cron>` running `run summary <task-id>`." |
 | Codex CLI | No native app-level primitive | Redirect user to open Codex app to finish scheduling, or store as manual. |
 | Cursor | **Cursor Automation** (UI-only creation) | Print step-by-step instructions for the user to create in Cursor's UI. Store handle as `manual`. |
@@ -168,7 +170,7 @@ See `scheduler-procedures.md` for the handle schema and per-type fields.
 
 **If creation fails** (e.g. the user declined the auto-approve prompt in Desktop, or Codex rejected the cron format): do not abort the task save. Keep the task in `config.json`, store `handle.type = "manual"`, and tell the user the trigger wasn't created and they can re-run setup in "Edit schedule" to retry.
 
-**3j. Offer a dry run.** "Run it once right now to sanity-check?" If yes, invoke `summary-run <task-id>` immediately. The dry run goes to the real destination so the user sees real output in its real place.
+**3j. Offer a dry run.** "Run it once right now to sanity-check?" If yes, invoke `sumi-run <task-id>` immediately. The dry run goes to the real destination so the user sees real output in its real place.
 
 ### 4. Edit existing task
 
@@ -187,15 +189,15 @@ For each edit, re-run the relevant substep from "Create new task." If the schedu
 
 ### 5. Delete task
 
-Confirm with the task's display name. Delete the scheduled trigger. Remove the task from `config.tasks`. Tell the user what was removed and that the drafts dir (`~/.claude-summaries/drafts/<task-id>/`) is preserved for history — safe to `rm -rf` manually if they want.
+Confirm with the task's display name. Delete the scheduled trigger. Remove the task from `config.tasks`. Tell the user what was removed and that the drafts dir (`~/.sumi/drafts/<task-id>/`) is preserved for history — safe to `rm -rf` manually if they want.
 
 ### 6. Run a task now
 
-Invoke the `summary-run` skill with the chosen task ID. This is the same code path as the scheduled trigger — useful for testing.
+Invoke the `sumi-run` skill with the chosen task ID. This is the same code path as the scheduled trigger — useful for testing.
 
 ## Schema reference
 
-The canonical schema for a task entry, source shapes, and destination shapes is in `skills/summary-run/references/run-procedure.md`. Both skills read that file as the source of truth so they can't drift.
+The canonical schema for a task entry, source shapes, and destination shapes is in `skills/sumi-run/references/run-procedure.md`. Both skills read that file as the source of truth so they can't drift.
 
 ## Context hygiene
 

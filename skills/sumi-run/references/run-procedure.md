@@ -1,11 +1,11 @@
 # Run Procedure — shared source of truth
 
 This file is canonical for:
-- The task schema stored in `~/.claude-summaries/config.json`
-- The pull → consolidate → deliver procedure the `summary-run` skill follows
+- The task schema stored in `~/.sumi/config.json`
+- The pull → consolidate → deliver procedure the `sumi-run` skill follows
 - The list of supported notes presets and their drafting-guidance strings
 
-Both `summary-agent` (manager) and `summary-run` (runner) read this file so they can't drift. When changing any schema or preset list, update this file; the skills resolve from here.
+Both `sumi` (manager) and `sumi-run` (runner) read this file so they can't drift. When changing any schema or preset list, update this file; the skills resolve from here.
 
 ## Task schema
 
@@ -127,7 +127,7 @@ If `template.type === "preset"`:
 - Read `skills/templates/<category>/<variant>.md` from the plugin's install directory.
 
 If `template.type === "custom"`:
-- Read `template.custom_path` (typically `~/.claude-summaries/templates/<task-id>.md`).
+- Read `template.custom_path` (typically `~/.sumi/templates/<task-id>.md`).
 - If missing, fall back to `skills/templates/custom.md` and tell the user in the draft footer.
 
 Re-read the template file every run so user edits take effect immediately.
@@ -185,7 +185,7 @@ Do not send — leave it as a draft for user control.
 
 ### `file`
 
-Write to `{{destination.dir || "~/.claude-summaries/drafts/<task-id>"}}/{{YYYY-MM-DD}}.md`. Create the directory if missing. Overwrite any existing file for the same date (idempotent re-runs). Print the absolute path so the user can open it.
+Write to `{{destination.dir || "~/.sumi/drafts/<task-id>"}}/{{YYYY-MM-DD}}.md`. Create the directory if missing. Overwrite any existing file for the same date (idempotent re-runs). Print the absolute path so the user can open it.
 
 ## Post-run bookkeeping
 
