@@ -1,0 +1,13 @@
+{
+  "name": "summary-agent",
+  "owner": {
+    "name": "summary-agent"
+  },
+  "plugins": [
+    {
+      "name": "summary-agent",
+      "source": "./",
+      "description": "Manage many recurring summary tasks — daily standups, weekly team updates, monthly exec briefs, customer digests, or anything custom — from your connected tools, delivered where you want."
+    }
+  ]
+}

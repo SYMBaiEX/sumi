@@ -1,0 +1,10 @@
+{
+  "name": "summary-agent",
+  "version": "0.1.0",
+  "description": "Manage many recurring summary tasks at any cadence — daily, weekly, monthly, or custom. Pulls from your connected tools (Google Drive, Gmail, Calendar, Slack), drafts using preset or custom templates, and delivers the summary where you want it. Company-agnostic and reusable.",
+  "author": {
+    "name": "summary-agent contributors"
+  },
+  "keywords": ["summary", "report", "status-report", "automation", "cron", "scheduled", "weekly", "daily", "monthly", "digest"],
+  "license": "MIT"
+}
