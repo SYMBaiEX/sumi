@@ -27,20 +27,29 @@ Installing in any one of your agent runtimes makes the plugin available across e
 
 Codex has its own plugin marketplace that reads `.codex-plugin/` + `.agents/plugins/marketplace.json`. Sumi ships both alongside the Claude Code manifest, so the standard Codex install flow works.
 
-Start a Codex session first, then run these **as slash commands inside the session** (not as shell commands):
+**Requires Codex CLI 0.122.0 or later.** Older versions used a different subcommand structure and will reject this syntax.
+
+```bash
+codex --version                                     # confirm ≥ 0.122.0
+codex plugin marketplace add SYMBaiEX/sumi          # shell command
+codex                                               # start a session
+```
+
+Then **inside the Codex session**:
 
 ```
-codex
-```
-
-Then inside Codex:
-
-```
-/plugin marketplace add SYMBaiEX/sumi
 /plugins
 ```
 
-`/plugins` opens the plugin directory — switch to the **Sumi** marketplace tab and install sumi. Once installed, type `/sumi` to set up.
+`/plugins` opens the plugin directory — switch to the **Sumi** marketplace tab and install sumi. Restart Codex after install completes, then:
+
+```
+/sumi
+```
+
+to set up.
+
+If `codex --version` reports older than 0.122.0, upgrade first: `brew upgrade codex`, `npm install -g @openai/codex@latest`, or grab the binary from [github.com/openai/codex/releases](https://github.com/openai/codex/releases/latest).
 
 **Alternative (if the marketplace command doesn't find the repo)**: place a personal marketplace pointer at `~/.agents/plugins/marketplace.json` that references this repo, or clone directly into the global skills path:
 
