@@ -133,7 +133,40 @@ Get explicit "yes, create it" confirmation.
 
 **3h. Write the task.** Append to `config.json` under `tasks[]` using the schema in `references/run-procedure.md`. Set `created_at` to now (ISO-8601 UTC).
 
-**3i. Create the scheduled trigger.** On Claude Code, use the `schedule` skill / CronCreate tool with prompt `/summary-run <task-id>`, the cron expression, and the timezone. Save the returned trigger ID back into `task.schedule.trigger_id`. On Claude Desktop or runtimes without native scheduling: skip and tell the user "This runtime doesn't support scheduled triggers yet — invoke manually with `run summary <task-id>` when you want it."
+**3i. Create the scheduled trigger using the runtime's native scheduler.**
+
+Every major agent runtime has its own native scheduling primitive as of 2026. The skill uses whatever the current runtime provides — no OS-level cron, no launchd, no Task Scheduler. Read [`skills/summary-run/references/scheduler-procedures.md`](../summary-run/references/scheduler-procedures.md) for the complete per-runtime recipes. Quick reference:
+
+| Detected runtime | Primitive to use | How to create |
+|---|---|---|
+| Claude Code CLI (durable) | **Routine** (cloud, via `/schedule`) | Instruct runtime: create routine `summary-<task-id>` with cron + prompt `/summary-run <task-id>`. |
+| Claude Code CLI (short-lived) | `CronCreate` MCP tool | Call directly; capture 8-char job ID. Warn user about 7-day expiry. |
+| Claude Desktop (macOS/Windows) | **Desktop scheduled task** | Instruct runtime: "Create a Desktop scheduled task named `summary-<task-id>` with frequency `<...>` running prompt `/summary-run <task-id>`." |
+| Codex app | **Codex Automation** (standalone) | Instruct runtime: "Create a standalone Codex automation named `summary-<task-id>` with cron `<cron>` running `run summary <task-id>`." |
+| Codex CLI | No native app-level primitive | Redirect user to open Codex app to finish scheduling, or store as manual. |
+| Cursor | **Cursor Automation** (UI-only creation) | Print step-by-step instructions for the user to create in Cursor's UI. Store handle as `manual`. |
+| Cline / Continue / other | No native scheduler for this use case | Store handle as `manual`. Suggest installing in Desktop or Codex app (cross-runtime symlinks share the config). |
+
+**Decision rules to apply at runtime**:
+
+- If in Claude Code CLI and cadence is daily/weekly/monthly: **prefer Routine** and explain to the user "this will run in Anthropic's cloud on schedule, even when your laptop is closed." If the user wants local-only, offer Desktop scheduled tasks (if Desktop is also installed) or CronCreate (with 7-day expiry warning).
+- If in Claude Desktop on a laptop that sleeps: offer Routine as an alternative "for tasks that should fire even when closed." Desktop tasks fire only while the app is running and the machine is awake.
+- For any runtime without a programmatic scheduler (Cursor, Cline, Continue): store `handle.type = "manual"` and print clear user instructions. The task is still valid — it just has to be invoked manually or scheduled manually.
+
+**After creating**, save the handle into `task.schedule.handle`:
+
+```json
+{
+  "type": "claude-code-routine",
+  "identifier": "<runtime-echoed name/id>",
+  "runtime": "claude-code",
+  "created_at": "ISO-8601"
+}
+```
+
+See `scheduler-procedures.md` for the handle schema and per-type fields.
+
+**If creation fails** (e.g. the user declined the auto-approve prompt in Desktop, or Codex rejected the cron format): do not abort the task save. Keep the task in `config.json`, store `handle.type = "manual"`, and tell the user the trigger wasn't created and they can re-run setup in "Edit schedule" to retry.
 
 **3j. Offer a dry run.** "Run it once right now to sanity-check?" If yes, invoke `summary-run <task-id>` immediately. The dry run goes to the real destination so the user sees real output in its real place.
 

@@ -114,13 +114,19 @@ Nothing leaves your machine beyond the connector calls your runtime already make
 
 ## Platforms
 
-| Runtime | Skills | Autonomous scheduled runs |
+Every runtime's native scheduler is used. No OS-level cron, launchd, or Task Scheduler — scheduled tasks live *inside* the runtime where you created them, integrating with its auth, connectors, permissions, and run history.
+
+| Runtime | Skills | Native scheduler used |
 |---|---|---|
-| Claude Code | ✅ | ✅ via native scheduled triggers |
-| Claude Desktop | ✅ | ❌ manual — say "run summary \<id\>" when you want it |
-| Codex CLI / Desktop | ✅ via AGENTS.md | ❌ manual — or wire a shell cron (example in `AGENTS.md`) |
-| Cursor / Cline / Continue | ✅ via AGENTS.md | ❌ manual |
+| Claude Code CLI | ✅ | **Routines** (cloud, durable) or `CronCreate` (session-scoped, 7-day) |
+| Claude Desktop (macOS, Windows) | ✅ | **Desktop scheduled tasks** (fires while app is open) |
+| Codex app | ✅ via AGENTS.md | **Codex Automations** (standalone) |
+| Codex CLI | ✅ via AGENTS.md | no app-level automation — skill redirects to Codex app or falls back to manual |
+| Cursor | ✅ via AGENTS.md | **Cursor Automations** (UI-only creation — skill prints exact paste-in steps) |
+| Cline / Continue / other | ✅ via AGENTS.md | no native scheduler — manual; suggest using Desktop/Codex app alongside |
 | Any MCP-capable agent | ✅ — follow the SKILL.md files directly | depends on runtime |
+
+Full per-runtime scheduler recipes (create / list / update / delete) in [`skills/summary-run/references/scheduler-procedures.md`](skills/summary-run/references/scheduler-procedures.md).
 
 ## Privacy
 

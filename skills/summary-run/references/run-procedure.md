@@ -27,7 +27,12 @@ Both `summary-agent` (manager) and `summary-run` (runner) read this file so they
     "cron": "0 9 * * 5",
     "timezone": "America/Chicago",
     "label": "Fridays at 9:00 AM CT",
-    "trigger_id": "<runtime-trigger-id-or-null>"
+    "handle": {
+      "type": "claude-code-routine | claude-code-cron | claude-desktop-task | codex-automation | manual",
+      "identifier": "<runtime-native id or task slug>",
+      "runtime": "claude-code | claude-desktop | codex | cursor | cline | continue | other",
+      "created_at": "ISO-8601"
+    }
   },
   "sources": {
     "drive": [

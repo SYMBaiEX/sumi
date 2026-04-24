@@ -60,24 +60,24 @@ Per-user config at `~/.claude-summaries/config.json` (chmod 600). Schema in `run
 
 ## Runtime-specific notes
 
-- **Claude Code / Desktop**: install via `/plugin marketplace add SYMBaiEX/summary-agent` and `/plugin install summary-agent@summary-agent`. Setup creates native Friday/Daily/Monthly scheduled triggers via Claude Code's `schedule` tooling. The manager skill auto-enables marketplace auto-update.
-- **Codex CLI / Desktop**: place this repo under a Codex scan path (e.g. `~/.codex/summary-agent`). Invoke with the trigger phrases above. Codex does not have a first-class cron yet — wire a shell-level cron pointing at `codex exec "run summary <task-id>"` if you want autonomous runs.
-- **Cursor / Cline / Continue**: clone the repo globally or add as a workspace, then invoke by the trigger phrases. Same manual-scheduling note as Codex.
-- **Any MCP-capable agent**: read the two SKILL.md files and follow them directly. The instructions are runtime-agnostic.
+Each runtime's native scheduler is used where available. The skill never falls back to OS-level cron.
+
+- **Claude Code CLI**: `CronCreate` for short-lived tasks (7-day expiry) or **Routines** for durable cloud-hosted scheduling (preferred for daily/weekly/monthly).
+- **Claude Desktop** (macOS, Windows): **Desktop scheduled tasks**, created by the skill via natural-language to the runtime. Persistent across restarts; fires while the app is open and the machine is awake.
+- **Codex app**: **Codex Automations** (standalone), created by the skill via natural-language to the runtime.
+- **Codex CLI**: no app-level automation primitive; the skill redirects the user to the Codex app or stores the task as manual.
+- **Cursor**: **Cursor Automations** are UI-only to create; the skill prints exact step-by-step instructions with the cron + prompt to paste.
+- **Cline / Continue / other**: no scheduler primitive — task is saved as manual; suggest using Desktop or Codex app as the scheduler (symlinks share the config across runtimes on the same machine).
+
+Full per-runtime recipes (create, list, update, delete) live in [`skills/summary-run/references/scheduler-procedures.md`](skills/summary-run/references/scheduler-procedures.md).
 
 ## Automatic cross-runtime availability
 
 When the manager skill runs in any runtime, it clones this repo to a canonical local path at `~/.claude-summaries/plugin/` and symlinks from there into each other agent runtime's scan path on the same machine. Install once in Claude Code, switch to Codex, and the plugin is already there sharing the same config. On runtime-specific update cadences, the manager skill pulls the canonical copy and every symlinked runtime sees the latest.
 
-## Scheduling without a native cron
+## Manual scheduling fallback
 
-For runtimes lacking native scheduling, use a shell-level cron pointing at a one-shot agent invocation:
-
-```cron
-0 9 * * 5  /path/to/codex exec "run summary team-weekly" >/dev/null 2>&1
-```
-
-One line per task. The run skill handles everything after — same path as an interactive invocation.
+For the small set of runtimes without a programmatic scheduler (Cursor, Cline, Continue, Codex CLI), the skill saves the task as `handle.type = "manual"` and prints concrete UI instructions. The user invokes `run summary <task-id>` manually, or installs the plugin in Claude Desktop / Codex app (cross-runtime symlinks share the config), where scheduling is fully automatic.
 
 ## Do not
 
