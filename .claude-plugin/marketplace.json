@@ -1,13 +1,13 @@
 {
   "name": "sumi",
   "owner": {
-    "name": "sumi"
+    "name": "SYMBaiEX"
   },
   "plugins": [
     {
       "name": "sumi",
-      "source": "./plugins/sumi",
-      "description": "Sumi — manage recurring summary tasks of any cadence from Drive, Gmail, Calendar, and Slack. Use /sumi to set up, /sumi-run to trigger."
+      "source": "./sumi",
+      "description": "Manage recurring summary tasks of any cadence — daily, weekly, monthly, or custom — from Drive, Gmail, Calendar, and Slack. /sumi to set up, /sumi-run to trigger."
     }
   ]
 }
