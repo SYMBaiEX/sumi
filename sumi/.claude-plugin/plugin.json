@@ -1,6 +1,6 @@
 {
   "name": "sumi",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Manage recurring summary tasks at any cadence — daily, weekly, monthly, or custom — that pull from your connected tools and deliver drafts where you want them. /sumi to set up, /sumi-run to trigger.",
   "author": {
     "name": "SYMBaiEX"

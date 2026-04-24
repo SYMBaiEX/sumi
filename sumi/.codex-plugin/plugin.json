@@ -1,6 +1,6 @@
 {
   "name": "sumi",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Sumi — manage recurring summary tasks at any cadence, drawn from your connected tools and delivered where you want to review them. /sumi to set up, /sumi-run to trigger.",
   "author": {
     "name": "SYMBaiEX"
