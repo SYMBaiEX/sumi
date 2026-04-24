@@ -8,7 +8,7 @@
       "name": "sumi",
       "source": {
         "source": "local",
-        "path": "../.."
+        "path": "./plugins/sumi"
       },
       "policy": {
         "installation": "AVAILABLE",

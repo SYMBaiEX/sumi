@@ -6,7 +6,7 @@
   "plugins": [
     {
       "name": "sumi",
-      "source": "./",
+      "source": "./plugins/sumi",
       "description": "Sumi — manage recurring summary tasks of any cadence from Drive, Gmail, Calendar, and Slack. Use /sumi to set up, /sumi-run to trigger."
     }
   ]
