@@ -1,6 +1,6 @@
 {
   "name": "sumi",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Sumi manages recurring summary tasks at any cadence — daily, weekly, monthly, or custom. Invoke with /sumi to create, edit, or run summary tasks that pull from Google Drive, Gmail, Calendar, and Slack and deliver drafts where you want them. Uses each runtime's native scheduler (Claude Desktop scheduled tasks, Codex Automations, Claude Code Routines) so scheduled runs are fully autonomous.",
   "author": {
     "name": "sumi contributors"

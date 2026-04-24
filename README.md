@@ -25,11 +25,21 @@ Installing in any one of your agent runtimes makes the plugin available across e
 
 ### Codex CLI / Codex Desktop
 
+Codex has its own plugin marketplace that reads `.codex-plugin/` + `.agents/plugins/marketplace.json`. Sumi ships both alongside the Claude Code manifest, so the standard Codex install flow works:
+
 ```bash
-git clone https://github.com/SYMBaiEX/sumi.git ~/.codex/sumi
+codex plugin marketplace add SYMBaiEX/sumi
 ```
 
-Then in Codex: `/sumi` (or say "set up sumi").
+Then open Codex's plugin directory (`/plugins` in the CLI, or the Plugins panel in Codex Desktop), pick the **Sumi** marketplace, and install the sumi plugin. Once installed, type `/sumi` to set up.
+
+**Alternative (if the marketplace command doesn't find the repo)**: place a personal marketplace pointer at `~/.agents/plugins/marketplace.json` that references this repo, or clone directly into the global skills path:
+
+```bash
+git clone https://github.com/SYMBaiEX/sumi.git ~/.codex/skills/sumi
+```
+
+Codex's global skills loader will discover the SKILL.md files at `~/.codex/skills/sumi/skills/` on next session. Then `/sumi` invokes the manager.
 
 ### Cursor / Cline / Continue / any AGENTS.md-aware agent
 
