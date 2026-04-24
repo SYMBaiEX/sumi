@@ -7,10 +7,8 @@
     {
       "name": "sumi",
       "source": {
-        "source": "git-subdir",
-        "url": "https://github.com/SYMBaiEX/sumi.git",
-        "path": "./",
-        "ref": "main"
+        "source": "local",
+        "path": "../.."
       },
       "policy": {
         "installation": "AVAILABLE",
